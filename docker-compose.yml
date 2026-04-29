@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------
+  # PostgreSQL Database (Shared server, separate schemas/DBs)
+  # ----------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecom_postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: ecom_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  # ----------------------------------------
+  # RabbitMQ Message Broker
+  # ----------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: ecom_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  # ----------------------------------------
+  # Redis (Optional, for Celery Backend / Cache)
+  # ----------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: ecom_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+networks:
+  ecom_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
