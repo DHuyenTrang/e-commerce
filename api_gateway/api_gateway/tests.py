@@ -72,6 +72,15 @@ class ApiGatewayTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["error"]["code"], "FORBIDDEN")
 
+    def test_order_admin_route_requires_order_permission(self):
+        response = self.client.get(
+            "/api/v1/orders/admin/orders",
+            HTTP_AUTHORIZATION="Bearer staff:staff-1;permissions=order:read_own",
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"]["code"], "FORBIDDEN")
+
     @patch("gateway.proxy.forward_request")
     def test_admin_route_forwards_staff_context_when_permission_exists(self, forward_request):
         forward_request.return_value = upstream_response(status=201, payload={"id": "product-1"})

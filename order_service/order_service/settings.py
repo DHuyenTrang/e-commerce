@@ -32,6 +32,7 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if os.getenv("D
 # Application definition
 
 INSTALLED_APPS = [
+    'order_core',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
