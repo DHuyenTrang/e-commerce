@@ -1,54 +1,66 @@
 # E-Commerce Microservices
 
-Hệ thống E-Commerce được xây dựng trên kiến trúc Microservices sử dụng Framework Django (Python) và giao tiếp thông qua REST API cùng Message Broker (RabbitMQ).
+Hệ thống E-Commerce được thiết kế theo kiến trúc Microservices, sử dụng Django/Python cho các backend service và giao tiếp qua REST API thông qua API Gateway.
 
-## Cấu trúc dự án
-Dự án bao gồm 9 Microservices riêng biệt:
-- `user_service`
-- `product_service`
-- `cart_service`
-- `order_service`
-- `inventory_service`
-- `promotion_service`
-- `payment_service`
-- `shipping_service`
-- `search_service`
+## Cấu trúc mục tiêu
 
-Mỗi service được khởi tạo dưới dạng một project Django độc lập, có thể chạy và mở rộng (scale) riêng biệt.
+Thiết kế tổng thể gồm 09 microservices theo bounded context:
 
-## Yêu cầu cài đặt (Prerequisites)
+- `user_service` - Customer Context
+- `staff_service` - Staff Context
+- `product_service` - Catalog Context
+- `cart_service` - Cart Context
+- `order_service` - Ordering Context
+- `payment_service` - Payment Context
+- `shipping_service` - Shipping Context
+- `ai_service` - AI Service Context
+- `comment_service` - Comment Context
+
+Lưu ý: code scaffold hiện tại có thể chưa có đủ các service mục tiêu. Các service sẽ được cập nhật dần theo tài liệu thiết kế.
+
+## Yêu cầu cài đặt
+
 - Python 3.10+
 - Docker và Docker Compose
 
-## Hướng dẫn chạy môi trường (Development Environment)
+## Chạy môi trường phát triển
 
-### 1. Khởi chạy cơ sở hạ tầng (Infrastructure)
-Bao gồm PostgreSQL, RabbitMQ và Redis:
+### 1. Khởi chạy hạ tầng
+
 ```bash
 docker-compose up -d
 ```
-Docker sẽ tự động khởi tạo các database riêng biệt (`user_db`, `product_db`,...) cho từng Microservice dựa trên file `init-dbs.sql`.
 
-### 2. Thiết lập môi trường Python (Python Environment)
-Kích hoạt virtual environment và cài đặt các thư viện cần thiết (nếu bạn chưa cài):
-```bash
-# Đối với Windows PowerShell
+Docker Compose khởi chạy PostgreSQL, RabbitMQ và Redis phục vụ môi trường phát triển.
+
+### 2. Kích hoạt Python environment
+
+```powershell
 .\venv\Scripts\Activate.ps1
-
-# Cài đặt thư viện chung
 pip install django djangorestframework psycopg2-binary
 ```
 
-### 3. Cấu hình và khởi chạy từng Service
-Mỗi service là một dự án Django riêng biệt. Trong quá trình phát triển, bạn sẽ cần trỏ database trong `settings.py` của từng service về localhost port 5432 với username `root`, password `rootpassword` và tên database tương ứng.
+### 3. Chạy từng service
 
-Ví dụ, chạy Product Service:
+Mỗi service là một Django project độc lập. Ví dụ chạy Product Service:
+
 ```bash
 cd product_service
 python manage.py runserver 8002
 ```
 
-## Tài liệu (Documentation)
-Vui lòng tham khảo thư mục `docs/`:
-- [Yêu cầu Nghiệp vụ (Business Requirements)](docs/requirements.md)
-- [Thiết kế Kiến trúc (Architecture Design)](docs/architecture.md)
+## Tài liệu
+
+- [Phân tích nghiệp vụ](docs/requirements.md)
+- [Thiết kế hệ thống](docs/architecture.md)
+- [Thiết kế User Service](docs/user_service_design.md)
+- [Thiết kế Staff Service](docs/staff_service_design.md)
+- [Thiết kế Product Service](docs/product_service_design.md)
+- [Thiết kế Cart Service](docs/cart_service_design.md)
+- [Thiết kế Order Service](docs/order_service_design.md)
+- [Thiết kế Payment Service](docs/payment_service_design.md)
+- [Thiết kế Shipping Service](docs/shipping_service_design.md)
+- [Thiết kế AI Service](docs/ai_service_design.md)
+- [Thiết kế Comment Service](docs/comment_service_design.md)
+- [Thiết kế API Gateway](docs/api_gateway_design.md)
+- [Thiết kế Front-end Service](docs/frontend_service_design.md)
