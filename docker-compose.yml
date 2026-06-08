@@ -34,15 +34,15 @@ services:
       POSTGRES_PASSWORD: rootpassword
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
-      USERS_SERVICE_URL: http://user_service:8001
-      STAFF_SERVICE_URL: http://staff_service:8002
-      PRODUCTS_SERVICE_URL: http://product_service:8003
-      CART_SERVICE_URL: http://cart_service:8004
-      ORDERS_SERVICE_URL: http://order_service:8005
-      PAYMENTS_SERVICE_URL: http://payment_service:8006
-      SHIPPING_SERVICE_URL: http://shipping_service:8007
-      AI_SERVICE_URL: http://ai_service:8008
-      COMMENTS_SERVICE_URL: http://comment_service:8009
+      USERS_SERVICE_URL: http://user-service:8001
+      STAFF_SERVICE_URL: http://staff-service:8002
+      PRODUCTS_SERVICE_URL: http://product-service:8003
+      CART_SERVICE_URL: http://cart-service:8004
+      ORDERS_SERVICE_URL: http://order-service:8005
+      PAYMENTS_SERVICE_URL: http://payment-service:8006
+      SHIPPING_SERVICE_URL: http://shipping-service:8007
+      AI_SERVICE_URL: http://ai-service:8008
+      COMMENTS_SERVICE_URL: http://comment-service:8009
     ports:
       - "8000:8000"
     depends_on:
@@ -88,7 +88,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - user-service
     restart: unless-stopped
 
   staff_service:
@@ -111,7 +113,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - staff-service
     restart: unless-stopped
 
   product_service:
@@ -134,7 +138,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - product-service
     restart: unless-stopped
 
   cart_service:
@@ -157,7 +163,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - cart-service
     restart: unless-stopped
 
   order_service:
@@ -180,7 +188,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - order-service
     restart: unless-stopped
 
   payment_service:
@@ -203,7 +213,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - payment-service
     restart: unless-stopped
 
   shipping_service:
@@ -226,7 +238,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - shipping-service
     restart: unless-stopped
 
   comment_service:
@@ -249,7 +263,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ecom_network
+      ecom_network:
+        aliases:
+          - comment-service
     restart: unless-stopped
 
   frontend:
