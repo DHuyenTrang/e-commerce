@@ -17,6 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from catalog import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/products', views.list_products),
+    path('api/v1/products/search', views.search_products),
+    path('api/v1/products/admin/metadata/<str:metadata_type>', views.manage_metadata),
+    path('api/v1/products/admin/products', views.admin_products),
+    path('api/v1/products/admin/products/<uuid:product_id>', views.admin_product_detail),
+    path('api/v1/products/admin/products/<uuid:product_id>/stock', views.admin_product_stock),
+    path('api/v1/products/<str:product_id_or_slug>', views.product_detail),
 ]
