@@ -1,53 +1,271 @@
-version: '3.8'
-
 services:
-  # ----------------------------------------
-  # PostgreSQL Database (Shared server, separate schemas/DBs)
-  # ----------------------------------------
   postgres:
     image: postgres:15-alpine
     container_name: ecom_postgres
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: rootpassword
-      POSTGRES_DB: ecom_db
+      POSTGRES_DB: gateway_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql
+      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d gateway_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     networks:
       - ecom_network
     restart: unless-stopped
 
-  # ----------------------------------------
-  # RabbitMQ Message Broker
-  # ----------------------------------------
-  rabbitmq:
-    image: rabbitmq:3.12-management-alpine
-    container_name: ecom_rabbitmq
+  api_gateway:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_api_gateway
+    working_dir: /app/api_gateway
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: gateway_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      USERS_SERVICE_URL: http://user_service:8001
+      STAFF_SERVICE_URL: http://staff_service:8002
+      PRODUCTS_SERVICE_URL: http://product_service:8003
+      CART_SERVICE_URL: http://cart_service:8004
+      ORDERS_SERVICE_URL: http://order_service:8005
+      PAYMENTS_SERVICE_URL: http://payment_service:8006
+      SHIPPING_SERVICE_URL: http://shipping_service:8007
+      AI_SERVICE_URL: http://ai_service:8008
+      COMMENTS_SERVICE_URL: http://comment_service:8009
     ports:
-      - "5672:5672"   # AMQP protocol port
-      - "15672:15672" # Management UI port
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user_service:
+        condition: service_started
+      staff_service:
+        condition: service_started
+      product_service:
+        condition: service_started
+      cart_service:
+        condition: service_started
+      order_service:
+        condition: service_started
+      payment_service:
+        condition: service_started
+      shipping_service:
+        condition: service_started
+      comment_service:
+        condition: service_started
     networks:
       - ecom_network
     restart: unless-stopped
 
-  # ----------------------------------------
-  # Redis (Optional, for Celery Backend / Cache)
-  # ----------------------------------------
-  redis:
-    image: redis:7-alpine
-    container_name: ecom_redis
+  user_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_user_service
+    working_dir: /app/user_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8001"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: user_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
     ports:
-      - "6379:6379"
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  staff_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_staff_service
+    working_dir: /app/staff_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8002"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: staff_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  product_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_product_service
+    working_dir: /app/product_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8003"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: product_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  cart_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_cart_service
+    working_dir: /app/cart_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8004"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: cart_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  order_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_order_service
+    working_dir: /app/order_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8005"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: order_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  payment_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_payment_service
+    working_dir: /app/payment_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8006"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8006:8006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  shipping_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_shipping_service
+    working_dir: /app/shipping_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8007"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: shipping_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8007:8007"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  comment_service:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    container_name: ecom_comment_service
+    working_dir: /app/comment_service
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8009"
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: comment_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8009:8009"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    restart: unless-stopped
+
+  frontend:
+    image: node:22-alpine
+    container_name: ecom_frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
     volumes:
-      - redis_data:/data
+      - ./front-end:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - api_gateway
     networks:
       - ecom_network
     restart: unless-stopped
@@ -58,5 +276,4 @@ networks:
 
 volumes:
   postgres_data:
-  rabbitmq_data:
-  redis_data:
+  frontend_node_modules:
